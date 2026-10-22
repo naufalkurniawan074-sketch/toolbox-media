@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Toolbox — Media Tools</title>
+<style>
+:root {
+  --site-primary: #635BFF;
+  --site-on-primary: #FFFFFF;
+  --site-secondary: #DDF8E8;
+  --site-on-secondary: #183D2A;
+  --site-background: #F6F7FB;
+  --site-on-background: #191B2A;
+  --site-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-font-heading: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --site-heading-scale: 1;
+  --site-spacing-scale: 1;
+  --site-radius-scale: 1;
+  --site-decoration-opacity: 1;
+  --theme-bg: light-dark(var(--site-background), #171824);
+  --surface: light-dark(#FFFFFF, #222432);
+  --surface-soft: light-dark(#F6F7FB, #1B1C29);
+  --text: light-dark(var(--site-on-background), #F2F2F8);
+  --muted: light-dark(#6F7285, #B2B4C5);
+  --border: light-dark(#E7E8F0, #38394B);
+  --shadow: 0 12px 32px light-dark(#27284A0B, #00000020);
+}
+* { box-sizing: border-box; }
+html { color-scheme: light dark; scroll-behavior: smooth; }
+body { margin: 0; font-family: var(--site-font-body); background: var(--theme-bg); color: var(--text); }
+button, input, textarea, select { font: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid #A6A1FF; outline-offset: 2px; }
+#app { min-height: 100vh; width: 100%; background-color: light-dark(var(--site-background), #171824); color: var(--text); border-radius: 0; overflow: hidden; }
+.shell { max-width: 1180px; margin: 0 auto; padding: calc(28px * var(--site-spacing-scale)) calc(24px * var(--site-spacing-scale)) 50px; }
+.topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:42px; }
+.brand { display:flex; align-items:center; gap:11px; font-weight:850; letter-spacing:-.7px; font-size:20px; }
+.logo { display:grid; place-items:center; width:38px; height:38px; border-radius:calc(13px * var(--site-radius-scale)); color:var(--site-on-primary); background:var(--site-primary); font-size:19px; }
+.top-right { display:flex; align-items:center; gap:12px; }
+.status { border:1px solid var(--border); background:var(--surface); border-radius:999px; padding:9px 13px; font-size:12px; color:var(--muted); }
+.theme-btn { border:1px solid var(--border); background:var(--surface); color:var(--text); width:40px;height:40px;border-radius:calc(12px * var(--site-radius-scale)); }
+.hero { display:grid; grid-template-columns:1.1fr .9fr; gap:24px; align-items:center; margin-bottom:36px; }
+.eyebrow { display:inline-flex; align-items:center; gap:8px; padding:7px 11px; border-radius:999px; background:var(--site-secondary); color:var(--site-on-secondary); font-size:12px; font-weight:750; }
+.eyebrow span { width:7px;height:7px;background:#26A269;border-radius:50%; }
+h1 { font-family:var(--site-font-heading); font-size:calc(clamp(36px,5vw,59px) * var(--site-heading-scale)); letter-spacing:-2.7px; line-height:1.04; margin:19px 0 16px; max-width:650px; }
+h1 em { color:var(--site-primary); font-style:normal; }
+.hero p { font-size:16px; line-height:1.7; color:var(--muted); max-width:540px; margin:0 0 24px; }
+.search { display:flex; align-items:center; gap:10px; max-width:560px; border:1px solid var(--border); background:var(--surface); border-radius:calc(15px * var(--site-radius-scale)); padding:8px 10px 8px 15px; box-shadow:var(--shadow); }
+.search .glass { color:var(--muted); font-size:21px; }
+.search input { border:0; outline:0; background:transparent; color:var(--text); min-width:0; flex:1; padding:8px 0; }
+.primary { border:0; border-radius:calc(10px * var(--site-radius-scale)); background:var(--site-primary); color:var(--site-on-primary); font-weight:750; padding:11px 16px; }
+.secondary { border:1px solid var(--border); background:var(--surface); color:var(--text); padding:10px 14px; border-radius:calc(10px * var(--site-radius-scale)); font-weight:700; }
+button:disabled { opacity:.48; cursor:not-allowed; }
+.hero-art { min-height:280px; border-radius:calc(28px * var(--site-radius-scale)); padding:24px; background:var(--site-primary); color:white; position:relative; isolation:isolate; overflow:hidden; }
+.hero-art:before,.hero-art:after { content:"";position:absolute;z-index:-1;border:1px solid #ffffff38;border-radius:50%;opacity:var(--site-decoration-opacity);pointer-events:none; }
+.hero-art:before { width:330px;height:330px;right:-70px;top:-120px; }
+.hero-art:after { width:240px;height:240px;right:-24px;top:-75px; }
+.art-top { display:flex;justify-content:space-between;align-items:center;font-size:12px;opacity:.86;gap:10px; }
+.art-title { font-size:25px;letter-spacing:-1px;font-weight:850;max-width:260px;margin-top:36px;line-height:1.2; }
+.mini-widgets { display:flex;gap:10px;margin-top:23px; }
+.mini { background:#ffffff20;border:1px solid #ffffff2e;border-radius:calc(13px * var(--site-radius-scale));padding:12px;flex:1;min-width:0; }
+.mini b { display:block;font-size:20px; }.mini small { opacity:.8;font-size:10px; }
+.section-head { display:flex;justify-content:space-between;align-items:end;gap:12px;margin:36px 0 16px; }
+.section-head h2 { font-size:22px;letter-spacing:-.7px;margin:0 0 5px; }
+.section-head p { margin:0;color:var(--muted);font-size:13px; }
+.category-row { display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px; }
+.chip { border:1px solid var(--border);background:var(--surface);color:var(--muted);padding:8px 13px;border-radius:999px;font-size:12px;font-weight:650; }
+.chip.active { background:var(--site-primary);color:white;border-color:var(--site-primary); }
+.tools-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px; }
+.tool-card { background:var(--surface);border:1px solid var(--border);border-radius:calc(19px * var(--site-radius-scale));padding:19px;min-height:185px;display:flex;flex-direction:column;transition:transform .18s,border-color .18s; }
+.tool-card:hover { transform:translateY(-3px);border-color:var(--site-primary); }
+.tool-icon { display:grid;place-items:center;width:43px;height:43px;border-radius:calc(14px * var(--site-radius-scale));background:var(--icon-bg,#EEEDFF);color:var(--icon-color,#635BFF);font-size:21px;margin-bottom:14px; }
+.tool-card h3 { margin:0 0 7px;font-size:16px;letter-spacing:-.3px; }
+.tool-card p { color:var(--muted);font-size:12.5px;line-height:1.55;margin:0 0 18px; }
+.tool-foot { margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px; }
+.tag { font-size:10px;color:var(--muted);background:var(--surface-soft);padding:6px 8px;border-radius:7px; }
+.open-tool { border:0;background:transparent;color:var(--site-primary);font-weight:750;font-size:12px;padding:7px; }
+.workspace { margin-top:32px;border:1px solid var(--border);background:var(--surface);border-radius:calc(22px * var(--site-radius-scale));padding:24px; }
+.workspace-top { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
+.workspace h2 { font-size:20px;margin:0 0 5px;letter-spacing:-.6px; }
+.workspace-top p { margin:0;color:var(--muted);font-size:13px; }
+.workspace-body { margin-top:20px; }
+.tool-panel { display:none; }
+.tool-panel.active { display:block; }
+.field-label { display:block;font-size:12px;font-weight:750;margin-bottom:8px; }
+.field { width:100%;border:1px solid var(--border);background:var(--surface-soft);color:var(--text);border-radius:calc(11px * var(--site-radius-scale));padding:12px 13px;outline-color:var(--site-primary); }
+.field-wrap { margin-bottom:14px; }
+.action-row { display:flex;gap:9px;flex-wrap:wrap;align-items:center;margin-top:14px; }
+.result { background:var(--surface-soft);border:1px solid var(--border);border-radius:calc(12px * var(--site-radius-scale));padding:15px;margin-top:15px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.65; }
+.result:empty { display:none; }
+.notice { background:var(--surface-soft);border:1px solid var(--border);padding:13px 14px;border-radius:calc(12px * var(--site-radius-scale));color:var(--muted);font-size:12px;line-height:1.6;margin-top:13px; }
+.notice strong { color:var(--text); }
+.video-preview { width:100%;max-height:360px;background:#090a10;border-radius:13px;margin-top:14px;display:none; }
+.media-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px; }
+.stat { border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:12px;color:var(--muted);min-width:0;overflow-wrap:anywhere; }
+.stat strong { color:var(--text);font-size:14px;display:block;margin-bottom:3px; }
+input[type="file"].field { padding:10px; }
+footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:40px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--muted); }
+.toast { position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#191B2A;color:white;padding:11px 16px;border-radius:12px;font-size:13px;display:none;z-index:5; }
+@media(max-width:800px){.hero{grid-template-columns:1fr}.hero-art{min-height:245px}.tools-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.topbar{margin-bottom:30px}}
+@media(max-width:540px){.shell{padding:20px 15px 38px}.status{display:none}.tools-grid{grid-template-columns:1fr}.tool-card{min-height:155px}.hero-art{min-height:230px}.workspace{padding:17px}h1{letter-spacing:-1.7px}.mini-widgets{gap:6px}.mini{padding:9px}.mini small{font-size:9px}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="logo">✳</div> toolbox<span style="color:var(--site-primary)">.</span></div>
+      <div class="top-right"><span class="status">✦ Media tools</span><button class="theme-btn" id="themeBtn" aria-label="Ganti tema" type="button">◐</button></div>
+    </header>
+    <section class="hero">
+      <div>
+        <span class="eyebrow"><span></span> VIDEO · AUDIO · MEDIA</span>
+        <h1>Semua media favoritmu, <em>satu tempat.</em></h1>
+        <p>Kelola tautan TikTok, cek dan ekspor video dari perangkatmu, serta buka konten Spotify dengan tools praktis dalam satu tempat.</p>
+        <div class="search"><span class="glass" aria-hidden="true">⌕</span><input id="searchInput" placeholder="Cari TikTok, video HD, Spotify..." aria-label="Cari tools"><button id="searchBtn" class="primary" type="button">Cari</button></div>
+      </div>
+      <div class="hero-art">
+        <div class="art-top"><span>✦ MEDIA TOOLBOX</span><span>01 / 03</span></div>
+        <div class="art-title">Video dan musik, dikelola lebih praktis.</div>
+        <div class="mini-widgets"><div class="mini"><b>03</b><small>MEDIA TOOLS</small></div><div class="mini"><b>∞</b><small>KEMUNGKINAN</small></div><div class="mini"><b>⚡</b><small>PRAKTIS</small></div></div>
+      </div>
+    </section>
+    <section>
+      <div class="section-head"><div><h2>Jelajahi tools</h2><p>Pilih alat media sesuai kebutuhanmu.</p></div><span class="tag" id="toolCount">3 tools</span></div>
+      <div class="category-row"><button class="chip active" data-cat="Semua" type="button">Semua tools</button><button class="chip" data-cat="Video & Audio" type="button">Video & Audio</button></div>
+      <div class="tools-grid" id="toolsGrid">
+        <article class="tool-card" data-name="tiktok video downloader unduh link tautan" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#E4F5F4;--icon-color:#087E78">▷</div><h3>TikTok Video Tool</h3><p>Periksa tautan TikTok dan buka video aslinya. Pengunduhan langsung membutuhkan backend.</p><div class="tool-foot"><span class="tag">TikTok</span><button class="open-tool" data-tool="tiktok" type="button">Buka tool ↗</button></div></article>
+        <article class="tool-card" data-name="video hd studio upload resolusi kualitas ekspor mp4 webm" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#DFF3FF;--icon-color:#176D9B">▣</div><h3>Video HD Studio</h3><p>Pratinjau video lokal, periksa resolusi, lalu coba ekspor 720p atau 1080p di browser.</p><div class="tool-foot"><span class="tag">Video HD</span><button class="open-tool" data-tool="hdvideo" type="button">Buka tool ↗</button></div></article>
+        <article class="tool-card" data-name="spotify lagu musik playlist link download mp3" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#DDF8E8;--icon-color:#19764A">♫</div><h3>Spotify Link Tool</h3><p>Validasi tautan lagu, album, atau playlist, lalu buka konten di Spotify.</p><div class="tool-foot"><span class="tag">Spotify</span><button class="open-tool" data-tool="spotify" type="button">Buka tool ↗</button></div></article>
+      </div>
+    </section>
+    <section class="workspace" id="workspace">
+      <div class="workspace-top"><div><h2 id="workspaceTitle">Mulai dari sini</h2><p id="workspaceDesc">Pilih salah satu tools di atas untuk membuka ruang kerjanya.</p></div><span class="tag">WORKSPACE</span></div>
+      <div class="workspace-body">
+        <div class="tool-panel" id="panel-tiktok">
+          <div class="field-wrap"><label class="field-label" for="tiktokUrl">Tautan video TikTok</label><input class="field" id="tiktokUrl" type="url" inputmode="url" placeholder="https://www.tiktok.com/@username/video/..." autocomplete="url"></div>
+          <div class="action-row"><button class="primary" id="tiktokCheck" type="button">Periksa tautan</button><button class="secondary" id="tiktokOpen" type="button" disabled>Buka video asli ↗</button><button class="secondary" id="tiktokCopy" type="button">Salin tautan</button></div>
+          <div class="result" id="tiktokResult" aria-live="polite"></div>
+          <div class="notice"><strong>Catatan:</strong> versi statis ini bisa memvalidasi tautan dan membuka posting asli. Pengambilan file video langsung memerlukan backend yang sesuai. Hormati hak cipta dan ketentuan platform.</div>
+        </div>
+        <div class="tool-panel" id="panel-hdvideo">
+          <div class="field-wrap"><label class="field-label" for="videoFile">Pilih video dari perangkat</label><input class="field" id="videoFile" type="file" accept="video/*"></div>
+          <video class="video-preview" id="videoPreview" controls playsinline preload="metadata"></video>
+          <div class="media-stats"><div class="stat"><strong id="videoResolution">—</strong>Resolusi</div><div class="stat"><strong id="videoDuration">—</strong>Durasi</div><div class="stat"><strong id="videoSize">—</strong>Ukuran file</div></div>
+          <div class="result" id="videoResult" aria-live="polite">Pilih file video untuk melihat pratinjau dan informasinya.</div>
+          <div class="action-row"><button class="secondary" id="videoDownload" type="button" disabled>Unduh file asli</button></div>
+          <div class="form-grid" style="margin-top:18px"><div class="field-wrap"><label class="field-label" for="videoOutputSize">Ukuran ekspor</label><select class="field" id="videoOutputSize"><option value="720">720p</option><option value="1080">1080p</option></select></div><div class="field-wrap"><label class="field-label" for="videoQuality">Kualitas / bitrate</label><select class="field" id="videoQuality"><option value="smaller">Hemat · file lebih kecil</option><option value="standard" selected>Standar · seimbang</option><option value="higher">Tinggi · file lebih besar</option></select></div></div>
+          <div class="action-row"><label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)"><input type="checkbox" id="videoKeepAudio" checked> Pertahankan audio jika didukung browser</label><button class="primary" id="videoConvert" type="button" disabled>Ekspor video</button></div>
+          <div class="result" id="videoConvertResult" aria-live="polite">Pilih video terlebih dahulu untuk mengaktifkan ekspor 720p atau 1080p.</div>
+          <div class="action-row"><button class="primary" id="videoExportDownload" type="button" disabled>Unduh hasil ekspor</button></div>
+          <div class="notice"><strong>Perlu diketahui:</strong> pemrosesan berjalan di browser. Ekspor dapat berjalan lebih lambat daripada durasi videonya. Memperbesar resolusi menjadi 1080p tidak menciptakan detail asli yang hilang. Format hasil bergantung dukungan browser.</div>
+        </div>
+        <div class="tool-panel" id="panel-spotify">
+          <div class="field-wrap"><label class="field-label" for="spotifyUrl">Tempel tautan Spotify</label><input class="field" id="spotifyUrl" type="url" inputmode="url" placeholder="https://open.spotify.com/track/..." autocomplete="url"></div>
+          <div class="action-row"><button class="primary" id="spotifyCheck" type="button">Periksa tautan</button><button class="secondary" id="spotifyOpen" type="button" disabled>Buka di Spotify ↗</button><button class="secondary" id="spotifyCopy" type="button">Salin tautan</button></div>
+          <div class="result" id="spotifyResult" aria-live="polite"></div>
+          <div class="notice"><strong>Untuk mendengarkan offline:</strong> gunakan fitur unduhan resmi dalam aplikasi Spotify sesuai paket dan ketersediaanmu. Tool ini tidak mengekstrak musik berhak cipta menjadi MP3 atau melewati proteksi layanan.</div>
+        </div>
+      </div>
+    </section>
+    <footer><span>© 2026 toolbox. Video · Audio · Media.</span><span>Ringan · Simpel · Praktis</span></footer>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite">Berhasil disalin!</div>
+<script>
+'use strict';
+(() => {
+  const $ = id => document.getElementById(id);
+  const toolInfo = {
+    tiktok: ['TikTok Video Tool', 'Periksa tautan TikTok dan buka posting asli.'],
+    hdvideo: ['Video HD Studio', 'Pratinjau video lokal dan ekspor jika browser mendukungnya.'],
+    spotify: ['Spotify Link Tool', 'Periksa tautan lagu, album, atau playlist Spotify.']
+  };
+  let selectedVideo = null;
+  let videoObjectUrl = null;
+  let exportedVideoUrl = null;
+  let exportedVideoBlob = null;
+  let exportBusy = false;
+  let activeTikTokUrl = null;
+  let activeSpotifyUrl = null;
+  const safeAdd = (id, event, handler) => {
+    const el = $(id);
+    if (el) el.addEventListener(event, handler);
+  };
+  const showPanel = name => {
+    if (!toolInfo[name] || !$('panel-' + name)) return;
+    document.querySelectorAll('.tool-panel').forEach(panel => panel.classList.remove('active'));
+    $('panel-' + name).classList.add('active');
+    $('workspaceTitle').textContent = toolInfo[name][0];
+    $('workspaceDesc').textContent = toolInfo[name][1];
+    $('workspace').scrollIntoView({behavior: 'smooth', block: 'start'});
+  };
+  document.querySelectorAll('[data-tool]').forEach(button => button.addEventListener('click', () => showPanel(button.dataset.tool)));
+
+  function filterTools() {
+    const query = ($('searchInput').value || '').trim().toLocaleLowerCase('id-ID');
+    const activeChip = document.querySelector('.chip.active');
+    const category = activeChip ? activeChip.dataset.cat : 'Semua';
+    let count = 0;
+    document.querySelectorAll('.tool-card').forEach(card => {
+      const terms = ((card.dataset.name || '') + ' ' + card.innerText).toLocaleLowerCase('id-ID');
+      const match = (category === 'Semua' || card.dataset.cat === category) && (!query || terms.includes(query));
+      card.style.display = match ? 'flex' : 'none';
+      if (match) count++;
+    });
+    $('toolCount').textContent = count + (count === 1 ? ' tool' : ' tools');
+  }
+  safeAdd('searchBtn', 'click', filterTools);
+  safeAdd('searchInput', 'input', filterTools);
+  document.querySelectorAll('.chip').forEach(button => button.addEventListener('click', () => {
+    document.querySelectorAll('.chip').forEach(chip => chip.classList.remove('active'));
+    button.classList.add('active');
+    filterTools();
+  }));
+  safeAdd('themeBtn', 'click', () => {
+    const darkNow = document.documentElement.dataset.theme !== 'dark';
+    document.documentElement.dataset.theme = darkNow ? 'dark' : 'light';
+    document.documentElement.style.colorScheme = darkNow ? 'dark' : 'light';
+    $('themeBtn').textContent = darkNow ? '☼' : '◐';
+  });
+
+  function flashToast(message) {
+    const toast = $('toast');
+    if (!toast) return;
+    toast.textContent = message || 'Berhasil disalin!';
+    toast.style.display = 'block';
+    window.setTimeout(() => { toast.style.display = 'none'; }, 1800);
+  }
+  async function copyText(value) {
+    const text = String(value || '').trim();
+    if (!text) { flashToast('Belum ada tautan untuk disalin.'); return; }
+    try {
+      if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(text);
+      else throw new Error('Clipboard API tidak tersedia');
+      flashToast('Berhasil disalin!');
+    } catch (error) {
+      const input = document.createElement('textarea');
+      input.value = text;
+      input.style.position = 'fixed'; input.style.opacity = '0';
+      document.body.appendChild(input); input.select();
+      const ok = document.execCommand('copy'); input.remove();
+      flashToast(ok ? 'Berhasil disalin!' : 'Salin tautan secara manual.');
+    }
+  }
+  function parseWebUrl(value) {
+    try {
+      const url = new URL(String(value || '').trim());
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+      return url;
+    } catch (error) { return null; }
+  }
+  function isTikTokUrl(url) {
+    if (!url) return false;
+    const host = url.hostname.toLowerCase().replace(/^www\./, '');
+    return host === 'tiktok.com' || host.endsWith('.tiktok.com');
+  }
+  safeAdd('tiktokCheck', 'click', () => {
+    const url = parseWebUrl($('tiktokUrl').value);
+    activeTikTokUrl = url && isTikTokUrl(url) ? url.href : null;
+    $('tiktokOpen').disabled = !activeTikTokUrl;
+    $('tiktokResult').textContent = activeTikTokUrl
+      ? 'Tautan TikTok dikenali. Kamu bisa membuka posting aslinya. Pengunduhan file langsung belum tersedia pada versi statis ini.'
+      : 'Tautan belum valid. Tempel alamat dari domain TikTok yang resmi, misalnya https://www.tiktok.com/@username/video/...';
+  });
+  safeAdd('tiktokOpen', 'click', () => {
+    if (activeTikTokUrl) window.open(activeTikTokUrl, '_blank', 'noopener,noreferrer');
+  });
+  safeAdd('tiktokCopy', 'click', () => copyText($('tiktokUrl').value));
+
+  function formatBytes(bytes) {
+    if (!Number.isFinite(bytes) || bytes < 0) return '—';
+    if (bytes < 1024) return bytes + ' B';
+    const units = ['KB', 'MB', 'GB', 'TB'];
+    let n = bytes / 1024, i = 0;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return n.toFixed(1) + ' ' + units[i];
+  }
+  function formatDuration(seconds) {
+    if (!Number.isFinite(seconds)) return '—';
+    const total = Math.floor(seconds);
+    const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60), s = total % 60;
+    return h ? h + ':' + String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') : m + ':' + String(s).padStart(2, '0');
+  }
+  function clearExport() {
+    if (exportedVideoUrl) URL.revokeObjectURL(exportedVideoUrl);
+    exportedVideoUrl = null; exportedVideoBlob = null;
+    $('videoExportDownload').disabled = true;
+  }
+  safeAdd('videoFile', 'change', () => {
+    const file = $('videoFile').files && $('videoFile').files[0];
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      $('videoResult').textContent = 'Pilih file video yang didukung browser.';
+      return;
+    }
+    selectedVideo = file;
+    clearExport();
+    if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+    videoObjectUrl = URL.createObjectURL(file);
+    const player = $('videoPreview');
+    player.onloadedmetadata = () => {
+      const w = player.videoWidth, h = player.videoHeight;
+      $('videoResolution').textContent = w + ' × ' + h;
+      $('videoDuration').textContent = formatDuration(player.duration);
+      $('videoResult').textContent = 'File: ' + file.name + '\nResolusi sumber: ' + w + ' × ' + h + '\n' + (Math.max(w, h) >= 1920 ? 'File sumber berukuran Full HD atau lebih tinggi.' : 'Resolusi sumber di bawah Full HD; ekspor ke 1080p tidak menambah detail asli.') + '\nFile diproses secara lokal di browser.';
+    };
+    player.onerror = () => {
+      $('videoResolution').textContent = 'Tidak tersedia';
+      $('videoDuration').textContent = 'Tidak tersedia';
+      $('videoResult').textContent = 'Browser tidak bisa mempratinjau format file ini. Ukuran file tetap dapat diperiksa.';
+    };
+    player.src = videoObjectUrl;
+    player.style.display = 'block';
+    $('videoSize').textContent = formatBytes(file.size);
+    $('videoResolution').textContent = 'Memuat…';
+    $('videoDuration').textContent = 'Memuat…';
+    $('videoDownload').disabled = false;
+    $('videoConvert').disabled = false;
+    $('videoConvertResult').textContent = 'Video terpilih. Pilih 720p atau 1080p, lalu tekan Ekspor video.';
+  });
+  safeAdd('videoDownload', 'click', () => {
+    if (!selectedVideo || !videoObjectUrl) return;
+    const a = document.createElement('a'); a.href = videoObjectUrl; a.download = selectedVideo.name || 'video-asli';
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+  const even = n => Math.max(2, Math.floor(n / 2) * 2);
+  safeAdd('videoConvert', 'click', async () => {
+    if (exportBusy) return;
+    const player = $('videoPreview');
+    if (!selectedVideo || !player.videoWidth || !Number.isFinite(player.duration) || player.duration <= 0) {
+      $('videoConvertResult').textContent = 'Video belum siap dibaca browser. Coba pilih ulang file video.'; return;
+    }
+    if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) {
+      $('videoConvertResult').textContent = 'Browser ini tidak mendukung ekspor video lokal. Coba Chrome atau Edge versi terbaru; kamu tetap bisa mengunduh file asli.'; return;
+    }
+    const target = Number($('videoOutputSize').value);
+    const sourceW = player.videoWidth, sourceH = player.videoHeight;
+    const scale = Math.min(1, target / Math.min(sourceW, sourceH));
+    // Upscale small sources to the selected height/width; preserve original aspect ratio.
+    const upscaleScale = target / Math.min(sourceW, sourceH);
+    const effectiveScale = Math.max(scale, upscaleScale);
+    const width = even(sourceW * effectiveScale), height = even(sourceH * effectiveScale);
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width * height > 3840 * 2160) {
+      $('videoConvertResult').textContent = 'Ukuran output terlalu besar untuk diproses dengan stabil di browser ini.'; return;
+    }
+    const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height;
+    const ctx = canvas.getContext('2d', {alpha: false});
+    if (!ctx) { $('videoConvertResult').textContent = 'Browser tidak dapat membuat kanvas video.'; return; }
+    const canvasStream = canvas.captureStream(24);
+    let sourceStream = null;
+    if ($('videoKeepAudio').checked) {
+      try {
+        if (typeof player.captureStream === 'function') sourceStream = player.captureStream();
+        else if (typeof player.mozCaptureStream === 'function') sourceStream = player.mozCaptureStream();
+      } catch (error) { sourceStream = null; }
+    }
+    const tracks = [...canvasStream.getVideoTracks(), ...(sourceStream ? sourceStream.getAudioTracks() : [])];
+    const stream = new MediaStream(tracks);
+    const typeOptions = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'];
+    const mimeType = typeOptions.find(type => MediaRecorder.isTypeSupported(type)) || '';
+    const quality = $('videoQuality').value;
+    const bitrates = {
+      720: {smaller: 1200000, standard: 2500000, higher: 4500000},
+      1080: {smaller: 2500000, standard: 5000000, higher: 8000000}
+    };
+    const videoBitrate = bitrates[target][quality] || bitrates[target].standard;
+    let recorder;
+    try {
+      recorder = mimeType ? new MediaRecorder(stream, {mimeType, videoBitsPerSecond: videoBitrate, audioBitsPerSecond: 128000}) : new MediaRecorder(stream, {videoBitsPerSecond: videoBitrate, audioBitsPerSecond: 128000});
+    } catch (error) {
+      stream.getTracks().forEach(track => track.stop());
+      $('videoConvertResult').textContent = 'Browser tidak dapat memulai ekspor dengan setelan ini. Coba kualitas lebih rendah.'; return;
+    }
+    const oldTime = player.currentTime, oldMuted = player.muted;
+    const wasPaused = player.paused;
+    const chunks = [];
+    exportBusy = true;
+    $('videoConvert').disabled = true; $('videoExportDownload').disabled = true;
+    $('videoConvertResult').textContent = 'Menyiapkan ekspor video secara lokal…';
+    let raf = 0, timer = 0;
+    const draw = () => {
+      if (player.readyState >= 2) {
+        try { ctx.drawImage(player, 0, 0, width, height); } catch (error) { /* frame belum siap */ }
+      }
+      if (!player.paused && !player.ended) raf = requestAnimationFrame(draw);
+    };
+    try {
+      player.pause(); player.currentTime = 0;
+      await new Promise(resolve => {
+        if (Math.abs(player.currentTime) < 0.01 && player.readyState >= 2) resolve();
+        else player.addEventListener('seeked', resolve, {once: true});
+      });
+      if ($('videoKeepAudio').checked && !sourceStream) {
+        $('videoConvertResult').textContent = 'Catatan: browser ini tidak menyediakan audio capture untuk ekspor; hasil mungkin tanpa audio.';
+      }
+      await player.play();
+      draw();
+      const stopped = new Promise((resolve, reject) => {
+        recorder.ondataavailable = event => { if (event.data && event.data.size) chunks.push(event.data); };
+        recorder.onerror = () => reject(new Error('Perekaman video gagal'));
+        recorder.onstop = resolve;
+        player.onended = () => { cancelAnimationFrame(raf); if (recorder.state !== 'inactive') recorder.stop(); };
+      });
+      recorder.start(1000);
+      timer = window.setInterval(() => {
+        const pct = Math.min(99, Math.floor((player.currentTime / player.duration) * 100));
+        $('videoConvertResult').textContent = 'Mengekspor… ' + pct + '%\nResolusi output: ' + width + ' × ' + height + '\nJaga tab tetap terbuka sampai selesai.';
+      }, 400);
+      await stopped;
+      exportedVideoBlob = new Blob(chunks, {type: recorder.mimeType || 'video/webm'});
+      if (!exportedVideoBlob.size) throw new Error('File ekspor kosong');
+      if (exportedVideoUrl) URL.revokeObjectURL(exportedVideoUrl);
+      exportedVideoUrl = URL.createObjectURL(exportedVideoBlob);
+      $('videoConvertResult').textContent = 'Ekspor selesai!\nResolusi output: ' + width + ' × ' + height + '\nTarget bitrate video: ' + (videoBitrate / 1000000).toFixed(1) + ' Mbps\nUkuran hasil: ' + formatBytes(exportedVideoBlob.size) + '\nFormat hasil: ' + (exportedVideoBlob.type || 'format browser') + '\nCatatan: hasil akhir bergantung pada kemampuan browser.';
+      $('videoExportDownload').disabled = false;
+    } catch (error) {
+      $('videoConvertResult').textContent = 'Ekspor gagal pada browser ini. Coba video yang lebih pendek, pilih kualitas lebih rendah, atau gunakan Chrome/Edge terbaru. File asli masih bisa diunduh.';
+    } finally {
+      if (timer) clearInterval(timer);
+      cancelAnimationFrame(raf);
+      player.pause();
+      try { player.currentTime = Math.min(oldTime, player.duration || 0); } catch (error) {}
+      player.muted = oldMuted;
+      if (!wasPaused) { /* Leave the preview paused after processing to avoid unexpected playback. */ }
+      stream.getTracks().forEach(track => track.stop());
+      if (sourceStream) sourceStream.getTracks().forEach(track => track.stop());
+      player.onended = null;
+      $('videoConvert').disabled = false;
+      exportBusy = false;
+    }
+  });
+  safeAdd('videoExportDownload', 'click', () => {
+    if (!exportedVideoUrl || !exportedVideoBlob) return;
+    const extension = exportedVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+    const base = (selectedVideo && selectedVideo.name ? selectedVideo.name : 'video').replace(/\.[^.]+$/, '');
+    const a = document.createElement('a'); a.href = exportedVideoUrl; a.download = base + '-' + $('videoOutputSize').value + 'p.' + extension;
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+
+  function parseSpotifyLink(value) {
+    const raw = String(value || '').trim();
+    const uri = raw.match(/^spotify:(track|album|playlist|episode|show|artist):([A-Za-z0-9]+)$/i);
+    if (uri) return {type: uri[1].toLowerCase(), id: uri[2], url: 'https://open.spotify.com/' + uri[1].toLowerCase() + '/' + uri[2]};
+    const url = parseWebUrl(raw);
+    if (!url) return null;
+    const host = url.hostname.toLowerCase();
+    if (host === 'spotify.link') return {type: 'tautan pendek Spotify', id: '', url: url.href};
+    if (host !== 'open.spotify.com') return null;
+    const parts = url.pathname.split('/').filter(Boolean);
+    const types = ['track', 'album', 'playlist', 'episode', 'show', 'artist'];
+    if (parts.length < 2 || !types.includes(parts[0])) return null;
+    if (!/^[A-Za-z0-9]+$/.test(parts[1])) return null;
+    return {type: parts[0], id: parts[1], url: url.href};
+  }
+  safeAdd('spotifyCheck', 'click', () => {
+    const item = parseSpotifyLink($('spotifyUrl').value);
+    activeSpotifyUrl = item ? item.url : null;
+    $('spotifyOpen').disabled = !activeSpotifyUrl;
+    $('spotifyResult').textContent = item
+      ? 'Tautan Spotify dikenali.\nJenis konten: ' + item.type + (item.id ? '\nID konten: ' + item.id : '') + '\nKamu dapat membuka konten ini di Spotify. Tool ini tidak mengunduh audio menjadi MP3.'
+      : 'Tautan belum dikenali. Tempel tautan Spotify resmi untuk lagu, album, playlist, artis, atau podcast.';
+  });
+  safeAdd('spotifyOpen', 'click', () => { if (activeSpotifyUrl) window.open(activeSpotifyUrl, '_blank', 'noopener,noreferrer'); });
+  safeAdd('spotifyCopy', 'click', () => copyText($('spotifyUrl').value));
+})();
+</script>
+</body>
+</html>
