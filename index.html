@@ -92,6 +92,9 @@ button:disabled { opacity:.48; cursor:not-allowed; }
 .result:empty { display:none; }
 .notice { background:var(--surface-soft);border:1px solid var(--border);padding:13px 14px;border-radius:calc(12px * var(--site-radius-scale));color:var(--muted);font-size:12px;line-height:1.6;margin-top:13px; }
 .notice strong { color:var(--text); }
+.embed-slot { margin-top:14px; }
+.embed-slot iframe { display:block; width:100%; border:0; border-radius:12px; background:var(--surface-soft); }
+.tiktok-embed { max-width:605px; min-width:280px; margin:0 auto; }
 .video-preview { width:100%;max-height:360px;background:#090a10;border-radius:13px;margin-top:14px;display:none; }
 .media-stats { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px; }
 .stat { border:1px solid var(--border);border-radius:10px;padding:10px 13px;font-size:12px;color:var(--muted);min-width:0;overflow-wrap:anywhere; }
@@ -139,6 +142,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
           <div class="field-wrap"><label class="field-label" for="tiktokUrl">Tautan video TikTok</label><input class="field" id="tiktokUrl" type="url" inputmode="url" placeholder="https://www.tiktok.com/@username/video/..." autocomplete="url"></div>
           <div class="action-row"><button class="primary" id="tiktokCheck" type="button">Periksa tautan</button><button class="secondary" id="tiktokOpen" type="button" disabled>Buka video asli ↗</button><button class="secondary" id="tiktokCopy" type="button">Salin tautan</button></div>
           <div class="result" id="tiktokResult" aria-live="polite"></div>
+          <div class="embed-slot" id="tiktokEmbed" aria-live="polite"></div>
           <div class="notice"><strong>Catatan:</strong> versi statis ini bisa memvalidasi tautan dan membuka posting asli. Pengambilan file video langsung memerlukan backend yang sesuai. Hormati hak cipta dan ketentuan platform.</div>
         </div>
         <div class="tool-panel" id="panel-hdvideo">
@@ -157,6 +161,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
           <div class="field-wrap"><label class="field-label" for="spotifyUrl">Tempel tautan Spotify</label><input class="field" id="spotifyUrl" type="url" inputmode="url" placeholder="https://open.spotify.com/track/..." autocomplete="url"></div>
           <div class="action-row"><button class="primary" id="spotifyCheck" type="button">Periksa tautan</button><button class="secondary" id="spotifyOpen" type="button" disabled>Buka di Spotify ↗</button><button class="secondary" id="spotifyCopy" type="button">Salin tautan</button></div>
           <div class="result" id="spotifyResult" aria-live="polite"></div>
+          <div class="embed-slot" id="spotifyEmbed" aria-live="polite"></div>
           <div class="notice"><strong>Untuk mendengarkan offline:</strong> gunakan fitur unduhan resmi dalam aplikasi Spotify sesuai paket dan ketersediaanmu. Tool ini tidak mengekstrak musik berhak cipta menjadi MP3 atau melewati proteksi layanan.</div>
         </div>
       </div>
@@ -261,10 +266,28 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     const url = parseWebUrl($('tiktokUrl').value);
     activeTikTokUrl = url && isTikTokUrl(url) ? url.href : null;
     $('tiktokOpen').disabled = !activeTikTokUrl;
+    $('tiktokEmbed').replaceChildren();
     $('tiktokResult').textContent = activeTikTokUrl
-      ? 'Tautan TikTok dikenali. Kamu bisa membuka posting aslinya. Pengunduhan file langsung belum tersedia pada versi statis ini.'
+      ? 'Tautan TikTok dikenali. Mencoba memuat pemutar resmi di bawah. Jika tidak muncul, buka video aslinya.'
       : 'Tautan belum valid. Tempel alamat dari domain TikTok yang resmi, misalnya https://www.tiktok.com/@username/video/...';
+    if (activeTikTokUrl) {
+      const quote = document.createElement('blockquote');
+      quote.className = 'tiktok-embed';
+      quote.setAttribute('cite', activeTikTokUrl);
+      quote.style.cssText = 'max-width:605px;min-width:280px;margin:0 auto';
+      const section = document.createElement('section');
+      const link = document.createElement('a');
+      link.href = activeTikTokUrl; link.target = '_blank'; link.rel = 'noopener noreferrer';
+      link.textContent = 'Lihat video ini di TikTok';
+      section.appendChild(link); quote.appendChild(section); $('tiktokEmbed').appendChild(quote);
+      document.querySelectorAll('script[data-tiktok-embed]').forEach(script => script.remove());
+      const script = document.createElement('script');
+      script.src = 'https://www.tiktok.com/embed.js'; script.async = true; script.dataset.tiktokEmbed = 'true';
+      script.onerror = () => { $('tiktokResult').textContent = 'Tautan valid, tetapi pemutar TikTok tidak dapat dimuat di halaman ini. Gunakan tombol Buka video asli.'; };
+      $('tiktokEmbed').appendChild(script);
+    }
   });
+  safeAdd('tiktokUrl', 'keydown', event => { if (event.key === 'Enter') $('tiktokCheck').click(); });
   safeAdd('tiktokOpen', 'click', () => {
     if (activeTikTokUrl) window.open(activeTikTokUrl, '_blank', 'noopener,noreferrer');
   });
@@ -443,26 +466,45 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
   function parseSpotifyLink(value) {
     const raw = String(value || '').trim();
     const uri = raw.match(/^spotify:(track|album|playlist|episode|show|artist):([A-Za-z0-9]+)$/i);
-    if (uri) return {type: uri[1].toLowerCase(), id: uri[2], url: 'https://open.spotify.com/' + uri[1].toLowerCase() + '/' + uri[2]};
+    if (uri) {
+      const type = uri[1].toLowerCase();
+      const url = 'https://open.spotify.com/' + type + '/' + uri[2];
+      return {type, id: uri[2], url, embedUrl: 'https://open.spotify.com/embed/' + type + '/' + uri[2]};
+    }
     const url = parseWebUrl(raw);
     if (!url) return null;
     const host = url.hostname.toLowerCase();
-    if (host === 'spotify.link') return {type: 'tautan pendek Spotify', id: '', url: url.href};
+    if (host === 'spotify.link') return {type: 'tautan pendek Spotify', id: '', url: url.href, embedUrl: ''};
     if (host !== 'open.spotify.com') return null;
     const parts = url.pathname.split('/').filter(Boolean);
     const types = ['track', 'album', 'playlist', 'episode', 'show', 'artist'];
     if (parts.length < 2 || !types.includes(parts[0])) return null;
     if (!/^[A-Za-z0-9]+$/.test(parts[1])) return null;
-    return {type: parts[0], id: parts[1], url: url.href};
+    return {type: parts[0], id: parts[1], url: url.href, embedUrl: 'https://open.spotify.com/embed/' + parts[0] + '/' + parts[1]};
   }
   safeAdd('spotifyCheck', 'click', () => {
     const item = parseSpotifyLink($('spotifyUrl').value);
     activeSpotifyUrl = item ? item.url : null;
     $('spotifyOpen').disabled = !activeSpotifyUrl;
+    $('spotifyEmbed').replaceChildren();
     $('spotifyResult').textContent = item
       ? 'Tautan Spotify dikenali.\nJenis konten: ' + item.type + (item.id ? '\nID konten: ' + item.id : '') + '\nKamu dapat membuka konten ini di Spotify. Tool ini tidak mengunduh audio menjadi MP3.'
       : 'Tautan belum dikenali. Tempel tautan Spotify resmi untuk lagu, album, playlist, artis, atau podcast.';
+    if (item && item.embedUrl) {
+      const frame = document.createElement('iframe');
+      frame.src = item.embedUrl;
+      frame.title = 'Pemutar Spotify: ' + item.type;
+      frame.loading = 'lazy';
+      frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+      frame.allowFullscreen = true;
+      frame.referrerPolicy = 'strict-origin-when-cross-origin';
+      frame.height = ['track', 'episode'].includes(item.type) ? '152' : '352';
+      $('spotifyEmbed').appendChild(frame);
+    } else if (item) {
+      $('spotifyResult').textContent += '\nTautan pendek dikenali; buka Spotify untuk melihat kontennya.';
+    }
   });
+  safeAdd('spotifyUrl', 'keydown', event => { if (event.key === 'Enter') $('spotifyCheck').click(); });
   safeAdd('spotifyOpen', 'click', () => { if (activeSpotifyUrl) window.open(activeSpotifyUrl, '_blank', 'noopener,noreferrer'); });
   safeAdd('spotifyCopy', 'click', () => copyText($('spotifyUrl').value));
 })();
