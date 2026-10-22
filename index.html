@@ -141,10 +141,13 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
       <div class="workspace-body">
         <div class="tool-panel" id="panel-tiktok">
           <div class="field-wrap"><label class="field-label" for="tiktokUrl">Tautan video TikTok</label><input class="field" id="tiktokUrl" type="url" inputmode="url" placeholder="https://www.tiktok.com/@username/video/..." autocomplete="url"></div>
-          <div class="action-row"><button class="primary" id="tiktokCheck" type="button">Periksa tautan</button><button class="secondary" id="tiktokOpen" type="button" disabled>Buka video asli ↗</button><button class="secondary" id="tiktokCopy" type="button">Salin tautan</button></div>
+          <div class="action-row"><button class="primary" id="tiktokCheck" type="button">Periksa tautan</button><button class="secondary" id="tiktokOpen" type="button" disabled>Buka video asli ↗</button><button class="secondary" id="tiktokCopy" type="button">Salin tautan</button><button class="secondary" id="tiktokReset" type="button">Bersihkan</button></div>
           <div class="result" id="tiktokResult" aria-live="polite"></div>
           <div class="embed-slot" id="tiktokEmbed" aria-live="polite"></div>
-          <div class="notice"><strong>Catatan:</strong> versi statis ini bisa memvalidasi tautan dan membuka posting asli. Pengambilan file video langsung memerlukan backend yang sesuai. Hormati hak cipta dan ketentuan platform.</div>
+          <div class="field-wrap" style="margin-top:18px"><label class="field-label" for="tiktokBackendUrl">Endpoint backend downloader (server HTTPS)</label><input class="field" id="tiktokBackendUrl" type="url" inputmode="url" placeholder="https://api-domainmu.example/tiktok-download" autocomplete="url"><p style="font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0">Untuk unduhan otomatis, masukkan endpoint HTTPS backend milikmu yang memproses video yang boleh diunduh dan mengembalikan file video. GitHub Pages sendiri hanya meng-host halaman statis.</p></div>
+          <div class="action-row"><button class="primary" id="tiktokDownload" type="button" disabled>Download video</button></div>
+          <div class="result" id="tiktokDownloadResult" aria-live="polite"></div>
+          <div class="notice"><strong>Catatan:</strong> unduhan otomatis hanya berfungsi saat backend telah dipasang, mengizinkan CORS dari situs ini, dan mengembalikan file video yang sah untuk diunduh. Jika kreator tidak mengizinkan download, gunakan opsi simpan resmi TikTok bila tersedia.</div>
         </div>
         <div class="tool-panel" id="panel-hdvideo">
           <div class="field-wrap"><label class="field-label" for="videoFile">Pilih video dari perangkat</label><input class="field" id="videoFile" type="file" accept="video/*"></div>
@@ -263,10 +266,22 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     const host = url.hostname.toLowerCase().replace(/^www\./, '');
     return host === 'tiktok.com' || host.endsWith('.tiktok.com');
   }
+  function updateTikTokDownloadButton() {
+    const endpoint = parseWebUrl($('tiktokBackendUrl').value);
+    $('tiktokDownload').disabled = !(activeTikTokUrl && endpoint && endpoint.protocol === 'https:');
+  }
+  safeAdd('tiktokUrl', 'input', () => {
+    const url = parseWebUrl($('tiktokUrl').value);
+    activeTikTokUrl = url && isTikTokUrl(url) ? url.href : null;
+    $('tiktokOpen').disabled = !activeTikTokUrl;
+    updateTikTokDownloadButton();
+  });
+  safeAdd('tiktokBackendUrl', 'input', updateTikTokDownloadButton);
   safeAdd('tiktokCheck', 'click', () => {
     const url = parseWebUrl($('tiktokUrl').value);
     activeTikTokUrl = url && isTikTokUrl(url) ? url.href : null;
     $('tiktokOpen').disabled = !activeTikTokUrl;
+    updateTikTokDownloadButton();
     $('tiktokEmbed').replaceChildren();
     $('tiktokResult').textContent = activeTikTokUrl
       ? 'Tautan TikTok dikenali. Mencoba memuat pemutar resmi di bawah. Jika tidak muncul, buka video aslinya.'
@@ -299,6 +314,72 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     if (activeTikTokUrl) window.open(activeTikTokUrl, '_blank', 'noopener,noreferrer');
   });
   safeAdd('tiktokCopy', 'click', () => copyText($('tiktokUrl').value));
+  safeAdd('tiktokReset', 'click', () => {
+    $('tiktokUrl').value = '';
+    $('tiktokResult').textContent = '';
+    $('tiktokEmbed').replaceChildren();
+    $('tiktokOpen').disabled = true;
+    activeTikTokUrl = null;
+    $('tiktokDownloadResult').textContent = '';
+    $('tiktokDownload').disabled = true;
+  });
+  safeAdd('tiktokDownload', 'click', async () => {
+    const url = parseWebUrl($('tiktokUrl').value);
+    activeTikTokUrl = url && isTikTokUrl(url) ? url.href : null;
+    const endpoint = parseWebUrl($('tiktokBackendUrl').value);
+    if (!activeTikTokUrl) {
+      $('tiktokDownloadResult').textContent = 'Tempel dan periksa tautan TikTok yang valid terlebih dahulu.';
+      return;
+    }
+    if (!endpoint || endpoint.protocol !== 'https:') {
+      $('tiktokDownloadResult').textContent = 'Backend belum diatur. Deploy backend HTTPS milikmu terlebih dahulu; GitHub Pages tidak menjalankan server.';
+      return;
+    }
+    const button = $('tiktokDownload');
+    button.disabled = true;
+    button.textContent = 'Memproses…';
+    $('tiktokDownloadResult').textContent = 'Meminta file dari backend. Jaga tab tetap terbuka.';
+    try {
+      const response = await fetch(endpoint.href, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {'Content-Type': 'application/json', 'Accept': 'video/*, application/octet-stream, application/json'},
+        body: JSON.stringify({url: activeTikTokUrl})
+      });
+      if (!response.ok) throw new Error('Backend merespons HTTP ' + response.status);
+      let blob;
+      const contentType = (response.headers.get('content-type') || '').toLowerCase();
+      if (contentType.includes('application/json')) {
+        const data = await response.json();
+        if (!data || typeof data.downloadUrl !== 'string') {
+          throw new Error(data && data.error ? String(data.error) : 'Backend belum mengembalikan file atau downloadUrl.');
+        }
+        const downloadUrl = parseWebUrl(data.downloadUrl);
+        if (!downloadUrl || downloadUrl.protocol !== 'https:') throw new Error('URL unduhan dari backend tidak valid.');
+        const fileResponse = await fetch(downloadUrl.href, {mode: 'cors'});
+        if (!fileResponse.ok) throw new Error('File video tidak dapat diambil dari URL unduhan.');
+        blob = await fileResponse.blob();
+      } else {
+        blob = await response.blob();
+      }
+      if (!blob || !blob.size) throw new Error('Backend mengembalikan file kosong.');
+      if (!(blob.type.startsWith('video/') || blob.type === 'application/octet-stream' || contentType.includes('application/octet-stream'))) {
+        throw new Error('Respons backend bukan file video.');
+      }
+      const objectUrl = URL.createObjectURL(blob);
+      const ext = blob.type.includes('webm') ? 'webm' : blob.type.includes('quicktime') ? 'mov' : 'mp4';
+      const anchor = document.createElement('a');
+      anchor.href = objectUrl; anchor.download = 'tiktok-video.' + ext;
+      document.body.appendChild(anchor); anchor.click(); anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+      $('tiktokDownloadResult').textContent = 'Unduhan dimulai. Ukuran file: ' + formatBytes(blob.size) + '. Gunakan hanya untuk video yang kamu miliki atau diizinkan untuk diunduh.';
+    } catch (error) {
+      $('tiktokDownloadResult').textContent = 'Unduhan belum berhasil: ' + (error && error.message ? error.message : 'permintaan gagal') + '. Pastikan backend aktif, CORS diizinkan, dan respons berisi file video.';
+    } finally {
+      button.textContent = 'Download video';
+      updateTikTokDownloadButton();
+    }
+  });
 
   function formatBytes(bytes) {
     if (!Number.isFinite(bytes) || bytes < 0) return '—';
