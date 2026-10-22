@@ -271,15 +271,21 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
       ? 'Tautan TikTok dikenali. Mencoba memuat pemutar resmi di bawah. Jika tidak muncul, buka video aslinya.'
       : 'Tautan belum valid. Tempel alamat dari domain TikTok yang resmi, misalnya https://www.tiktok.com/@username/video/...';
     if (activeTikTokUrl) {
+      const videoMatch = new URL(activeTikTokUrl).pathname.match(/\\/(?:video|photo)\\/(\\d+)/);
       const quote = document.createElement('blockquote');
       quote.className = 'tiktok-embed';
       quote.setAttribute('cite', activeTikTokUrl);
       quote.style.cssText = 'max-width:605px;min-width:280px;margin:0 auto';
+      if (videoMatch) quote.setAttribute('data-video-id', videoMatch[1]);
       const section = document.createElement('section');
       const link = document.createElement('a');
       link.href = activeTikTokUrl; link.target = '_blank'; link.rel = 'noopener noreferrer';
       link.textContent = 'Lihat video ini di TikTok';
       section.appendChild(link); quote.appendChild(section); $('tiktokEmbed').appendChild(quote);
+      if (!videoMatch) {
+        $('tiktokResult').textContent = 'Tautan TikTok dikenali. Pemutar sematan memerlukan tautan video langsung; gunakan tombol Buka video asli untuk tautan pendek.';
+        return;
+      }
       document.querySelectorAll('script[data-tiktok-embed]').forEach(script => script.remove());
       const script = document.createElement('script');
       script.src = 'https://www.tiktok.com/embed.js'; script.async = true; script.dataset.tiktokEmbed = 'true';
@@ -316,6 +322,15 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     const file = $('videoFile').files && $('videoFile').files[0];
     if (!file) return;
     if (!file.type.startsWith('video/')) {
+      selectedVideo = null;
+      if (videoObjectUrl) URL.revokeObjectURL(videoObjectUrl);
+      videoObjectUrl = null;
+      $('videoPreview').removeAttribute('src');
+      $('videoPreview').load();
+      $('videoPreview').style.display = 'none';
+      $('videoDownload').disabled = true;
+      $('videoConvert').disabled = true;
+      clearExport();
       $('videoResult').textContent = 'Pilih file video yang didukung browser.';
       return;
     }
@@ -478,9 +493,10 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     if (host !== 'open.spotify.com') return null;
     const parts = url.pathname.split('/').filter(Boolean);
     const types = ['track', 'album', 'playlist', 'episode', 'show', 'artist'];
-    if (parts.length < 2 || !types.includes(parts[0])) return null;
-    if (!/^[A-Za-z0-9]+$/.test(parts[1])) return null;
-    return {type: parts[0], id: parts[1], url: url.href, embedUrl: 'https://open.spotify.com/embed/' + parts[0] + '/' + parts[1]};
+    const normalizedParts = /^intl-[a-z]{2}$/i.test(parts[0] || '') ? parts.slice(1) : parts;
+    if (normalizedParts.length < 2 || !types.includes(normalizedParts[0])) return null;
+    if (!/^[A-Za-z0-9]+$/.test(normalizedParts[1])) return null;
+    return {type: normalizedParts[0], id: normalizedParts[1], url: url.href, embedUrl: 'https://open.spotify.com/embed/' + normalizedParts[0] + '/' + normalizedParts[1]};
   }
   safeAdd('spotifyCheck', 'click', () => {
     const item = parseSpotifyLink($('spotifyUrl').value);
