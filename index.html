@@ -76,7 +76,8 @@ button:disabled { opacity:.48; cursor:not-allowed; }
 .tool-card p { color:var(--muted);font-size:12.5px;line-height:1.55;margin:0 0 18px; }
 .tool-foot { margin-top:auto;display:flex;align-items:center;justify-content:space-between;gap:8px; }
 .tag { font-size:10px;color:var(--muted);background:var(--surface-soft);padding:6px 8px;border-radius:7px; }
-.open-tool { border:0;background:transparent;color:var(--site-primary);font-weight:750;font-size:12px;padding:7px; }
+.open-tool { border:0;background:transparent;color:var(--site-primary);font-weight:750;font-size:12px;padding:7px;text-decoration:none;display:inline-block;position:relative;z-index:2;pointer-events:auto; }
+.tool-panel:target { display:block; }
 .workspace { margin-top:32px;border:1px solid var(--border);background:var(--surface);border-radius:calc(22px * var(--site-radius-scale));padding:24px; }
 .workspace-top { display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap; }
 .workspace h2 { font-size:20px;margin:0 0 5px;letter-spacing:-.6px; }
@@ -130,9 +131,9 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
       <div class="section-head"><div><h2>Jelajahi tools</h2><p>Pilih alat media sesuai kebutuhanmu.</p></div><span class="tag" id="toolCount">3 tools</span></div>
       <div class="category-row"><button class="chip active" data-cat="Semua" type="button">Semua tools</button><button class="chip" data-cat="Video & Audio" type="button">Video & Audio</button></div>
       <div class="tools-grid" id="toolsGrid">
-        <article class="tool-card" data-name="tiktok video downloader unduh link tautan" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#E4F5F4;--icon-color:#087E78">▷</div><h3>TikTok Video Tool</h3><p>Periksa tautan TikTok dan buka video aslinya. Pengunduhan langsung membutuhkan backend.</p><div class="tool-foot"><span class="tag">TikTok</span><button class="open-tool" data-tool="tiktok" type="button">Buka tool ↗</button></div></article>
-        <article class="tool-card" data-name="video hd studio upload resolusi kualitas ekspor mp4 webm" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#DFF3FF;--icon-color:#176D9B">▣</div><h3>Video HD Studio</h3><p>Pratinjau video lokal, periksa resolusi, lalu coba ekspor 720p atau 1080p di browser.</p><div class="tool-foot"><span class="tag">Video HD</span><button class="open-tool" data-tool="hdvideo" type="button">Buka tool ↗</button></div></article>
-        <article class="tool-card" data-name="spotify lagu musik playlist link download mp3" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#DDF8E8;--icon-color:#19764A">♫</div><h3>Spotify Link Tool</h3><p>Validasi tautan lagu, album, atau playlist, lalu buka konten di Spotify.</p><div class="tool-foot"><span class="tag">Spotify</span><button class="open-tool" data-tool="spotify" type="button">Buka tool ↗</button></div></article>
+        <article class="tool-card" data-name="tiktok video downloader unduh link tautan" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#E4F5F4;--icon-color:#087E78">▷</div><h3>TikTok Video Tool</h3><p>Periksa tautan TikTok dan buka video aslinya. Pengunduhan langsung membutuhkan backend.</p><div class="tool-foot"><span class="tag">TikTok</span><a class="open-tool" data-tool="tiktok" href="#panel-tiktok">Buka tool ↗</a></div></article>
+        <article class="tool-card" data-name="video hd studio upload resolusi kualitas ekspor mp4 webm" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#DFF3FF;--icon-color:#176D9B">▣</div><h3>Video HD Studio</h3><p>Pratinjau video lokal, periksa resolusi, lalu coba ekspor 720p atau 1080p di browser.</p><div class="tool-foot"><span class="tag">Video HD</span><a class="open-tool" data-tool="hdvideo" href="#panel-hdvideo">Buka tool ↗</a></div></article>
+        <article class="tool-card" data-name="spotify lagu musik playlist link download mp3" data-cat="Video & Audio"><div class="tool-icon" style="--icon-bg:#DDF8E8;--icon-color:#19764A">♫</div><h3>Spotify Link Tool</h3><p>Validasi tautan lagu, album, atau playlist, lalu buka konten di Spotify.</p><div class="tool-foot"><span class="tag">Spotify</span><a class="open-tool" data-tool="spotify" href="#panel-spotify">Buka tool ↗</a></div></article>
       </div>
     </section>
     <section class="workspace" id="workspace">
