@@ -1,0 +1,8 @@
+name = "toolbox-media-backend"
+main = "worker.js"
+compatibility_date = "2026-10-22"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGINS = "https://naufalkurniawan074-sketch.github.io"
+MAX_DOWNLOAD_MB = "100"
