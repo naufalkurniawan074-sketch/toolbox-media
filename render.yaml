@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: toolbox-media-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ALLOWED_ORIGINS
+        value: https://naufalkurniawan074-sketch.github.io
+      - key: MAX_DOWNLOAD_MB
+        value: "100"
