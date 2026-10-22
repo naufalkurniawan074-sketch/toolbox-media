@@ -270,7 +270,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
   function updateTikTokDownloadButton() {
     const endpoint = parseWebUrl($('tiktokBackendUrl').value);
     const mediaUrl = parseWebUrl($('tiktokMediaFileUrl').value);
-    const host = mediaUrl ? mediaUrl.hostname.toLowerCase().replace(/^www\\./, '') : '';
+    const host = mediaUrl ? mediaUrl.hostname.toLowerCase().replace(/^www\./, '') : '';
     const isTikTokHost = host === 'tiktok.com' || host.endsWith('.tiktok.com') || host === 'tiktokcdn.com' || host.endsWith('.tiktokcdn.com');
     $('tiktokDownload').disabled = !(endpoint && endpoint.protocol === 'https:' && endpoint.pathname.endsWith('/api/download-direct') && mediaUrl && mediaUrl.protocol === 'https:' && !isTikTokHost);
   }
@@ -331,7 +331,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
   safeAdd('tiktokDownload', 'click', async () => {
     const endpoint = parseWebUrl($('tiktokBackendUrl').value);
     const mediaUrl = parseWebUrl($('tiktokMediaFileUrl').value);
-    const mediaHost = mediaUrl ? mediaUrl.hostname.toLowerCase().replace(/^www\\./, '') : '';
+    const mediaHost = mediaUrl ? mediaUrl.hostname.toLowerCase().replace(/^www\./, '') : '';
     const isTikTokHost = mediaHost === 'tiktok.com' || mediaHost.endsWith('.tiktok.com') || mediaHost === 'tiktokcdn.com' || mediaHost.endsWith('.tiktokcdn.com');
     if (!mediaUrl || mediaUrl.protocol !== 'https:' || isTikTokHost) {
       $('tiktokDownloadResult').textContent = 'Masukkan URL HTTPS ke file video langsung dari sumber yang mengizinkan unduhan. Link halaman TikTok bukan URL file video langsung.';
