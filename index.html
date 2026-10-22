@@ -146,7 +146,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
           <div class="embed-slot" id="tiktokEmbed" aria-live="polite"></div>
           <div class="field-wrap" style="margin-top:18px"><label class="field-label" for="tiktokBackendUrl">Endpoint backend HTTPS</label><input class="field" id="tiktokBackendUrl" type="url" inputmode="url" placeholder="https://nama-service.onrender.com/api/download-direct" autocomplete="url"><p style="font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0">Isi setelah backend diterbitkan di Render. Endpoint harus berakhir dengan <code>/api/download-direct</code>.</p></div>
           <div class="field-wrap"><label class="field-label" for="tiktokMediaFileUrl">URL file video langsung (bukan halaman TikTok)</label><input class="field" id="tiktokMediaFileUrl" type="url" inputmode="url" placeholder="https://media-domain-milikmu.example/video.mp4" autocomplete="url"><p style="font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0">Backend ini menerima file MP4/WebM dari hostname yang sudah diizinkan di Render. Gunakan video milikmu atau video yang pemiliknya mengizinkan unduhan. Link halaman TikTok biasa tidak dapat dipakai sebagai URL file langsung.</p></div>
-          <div class="action-row"><button class="primary" id="tiktokDownload" type="button" disabled>Download video</button></div>
+          <div class="action-row"><button class="primary" id="tiktokDownload" type="button">Download file video</button></div>
           <div class="result" id="tiktokDownloadResult" aria-live="polite"></div>
           <div class="notice"><strong>Catatan:</strong> unduhan otomatis hanya berfungsi saat backend telah dipasang, mengizinkan CORS dari situs ini, dan mengembalikan file video yang sah untuk diunduh. Jika kreator tidak mengizinkan download, gunakan opsi simpan resmi TikTok bila tersedia.</div>
         </div>
@@ -268,11 +268,8 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     return host === 'tiktok.com' || host.endsWith('.tiktok.com');
   }
   function updateTikTokDownloadButton() {
-    const endpoint = parseWebUrl($('tiktokBackendUrl').value);
-    const mediaUrl = parseWebUrl($('tiktokMediaFileUrl').value);
-    const host = mediaUrl ? mediaUrl.hostname.toLowerCase().replace(/^www\./, '') : '';
-    const isTikTokHost = host === 'tiktok.com' || host.endsWith('.tiktok.com') || host === 'tiktokcdn.com' || host.endsWith('.tiktokcdn.com');
-    $('tiktokDownload').disabled = !(endpoint && endpoint.protocol === 'https:' && endpoint.pathname.endsWith('/api/download-direct') && mediaUrl && mediaUrl.protocol === 'https:' && !isTikTokHost);
+    // Keep the button clickable so missing configuration produces a useful message.
+    $('tiktokDownload').disabled = false;
   }
   safeAdd('tiktokUrl', 'input', () => {
     const url = parseWebUrl($('tiktokUrl').value);
@@ -326,7 +323,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     $('tiktokOpen').disabled = true;
     activeTikTokUrl = null;
     $('tiktokDownloadResult').textContent = '';
-    $('tiktokDownload').disabled = true;
+    $('tiktokDownload').disabled = false;
   });
   safeAdd('tiktokDownload', 'click', async () => {
     const endpoint = parseWebUrl($('tiktokBackendUrl').value);
