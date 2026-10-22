@@ -267,8 +267,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     return host === 'tiktok.com' || host.endsWith('.tiktok.com');
   }
   function updateTikTokDownloadButton() {
-    const endpoint = parseWebUrl($('tiktokBackendUrl').value);
-    $('tiktokDownload').disabled = !(activeTikTokUrl && endpoint && endpoint.protocol === 'https:');
+    $('tiktokDownload').disabled = !activeTikTokUrl;
   }
   safeAdd('tiktokUrl', 'input', () => {
     const url = parseWebUrl($('tiktokUrl').value);
