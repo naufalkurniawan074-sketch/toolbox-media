@@ -271,7 +271,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
       ? 'Tautan TikTok dikenali. Mencoba memuat pemutar resmi di bawah. Jika tidak muncul, buka video aslinya.'
       : 'Tautan belum valid. Tempel alamat dari domain TikTok yang resmi, misalnya https://www.tiktok.com/@username/video/...';
     if (activeTikTokUrl) {
-      const videoMatch = new URL(activeTikTokUrl).pathname.match(/\\/(?:video|photo)\\/(\\d+)/);
+      const videoMatch = new URL(activeTikTokUrl).pathname.match(/\/(?:video|photo)\/(\d+)/);
       const quote = document.createElement('blockquote');
       quote.className = 'tiktok-embed';
       quote.setAttribute('cite', activeTikTokUrl);
