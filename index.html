@@ -144,7 +144,8 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
           <div class="action-row"><button class="primary" id="tiktokCheck" type="button">Periksa tautan</button><button class="secondary" id="tiktokOpen" type="button" disabled>Buka video asli ↗</button><button class="secondary" id="tiktokCopy" type="button">Salin tautan</button><button class="secondary" id="tiktokReset" type="button">Bersihkan</button></div>
           <div class="result" id="tiktokResult" aria-live="polite"></div>
           <div class="embed-slot" id="tiktokEmbed" aria-live="polite"></div>
-          <div class="field-wrap" style="margin-top:18px"><label class="field-label" for="tiktokBackendUrl">Endpoint backend downloader (server HTTPS)</label><input class="field" id="tiktokBackendUrl" type="url" inputmode="url" placeholder="https://api-domainmu.example/tiktok-download" autocomplete="url"><p style="font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0">Untuk unduhan otomatis, masukkan endpoint HTTPS backend milikmu yang memproses video yang boleh diunduh dan mengembalikan file video. GitHub Pages sendiri hanya meng-host halaman statis.</p></div>
+          <div class="field-wrap" style="margin-top:18px"><label class="field-label" for="tiktokBackendUrl">Endpoint backend HTTPS</label><input class="field" id="tiktokBackendUrl" type="url" inputmode="url" placeholder="https://nama-service.onrender.com/api/download-direct" autocomplete="url"><p style="font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0">Isi setelah backend diterbitkan di Render. Endpoint harus berakhir dengan <code>/api/download-direct</code>.</p></div>
+          <div class="field-wrap"><label class="field-label" for="tiktokMediaFileUrl">URL file video langsung (bukan halaman TikTok)</label><input class="field" id="tiktokMediaFileUrl" type="url" inputmode="url" placeholder="https://media-domain-milikmu.example/video.mp4" autocomplete="url"><p style="font-size:12px;color:var(--muted);line-height:1.5;margin:8px 0 0">Backend ini menerima file MP4/WebM dari hostname yang sudah diizinkan di Render. Gunakan video milikmu atau video yang pemiliknya mengizinkan unduhan. Link halaman TikTok biasa tidak dapat dipakai sebagai URL file langsung.</p></div>
           <div class="action-row"><button class="primary" id="tiktokDownload" type="button" disabled>Download video</button></div>
           <div class="result" id="tiktokDownloadResult" aria-live="polite"></div>
           <div class="notice"><strong>Catatan:</strong> unduhan otomatis hanya berfungsi saat backend telah dipasang, mengizinkan CORS dari situs ini, dan mengembalikan file video yang sah untuk diunduh. Jika kreator tidak mengizinkan download, gunakan opsi simpan resmi TikTok bila tersedia.</div>
@@ -267,14 +268,18 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     return host === 'tiktok.com' || host.endsWith('.tiktok.com');
   }
   function updateTikTokDownloadButton() {
-    $('tiktokDownload').disabled = !activeTikTokUrl;
+    const endpoint = parseWebUrl($('tiktokBackendUrl').value);
+    const mediaUrl = parseWebUrl($('tiktokMediaFileUrl').value);
+    const host = mediaUrl ? mediaUrl.hostname.toLowerCase().replace(/^www\\./, '') : '';
+    const isTikTokHost = host === 'tiktok.com' || host.endsWith('.tiktok.com') || host === 'tiktokcdn.com' || host.endsWith('.tiktokcdn.com');
+    $('tiktokDownload').disabled = !(endpoint && endpoint.protocol === 'https:' && endpoint.pathname.endsWith('/api/download-direct') && mediaUrl && mediaUrl.protocol === 'https:' && !isTikTokHost);
   }
   safeAdd('tiktokUrl', 'input', () => {
     const url = parseWebUrl($('tiktokUrl').value);
     activeTikTokUrl = url && isTikTokUrl(url) ? url.href : null;
     $('tiktokOpen').disabled = !activeTikTokUrl;
-    updateTikTokDownloadButton();
   });
+  safeAdd('tiktokMediaFileUrl', 'input', updateTikTokDownloadButton);
   safeAdd('tiktokBackendUrl', 'input', updateTikTokDownloadButton);
   safeAdd('tiktokCheck', 'click', () => {
     const url = parseWebUrl($('tiktokUrl').value);
@@ -315,6 +320,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
   safeAdd('tiktokCopy', 'click', () => copyText($('tiktokUrl').value));
   safeAdd('tiktokReset', 'click', () => {
     $('tiktokUrl').value = '';
+    $('tiktokMediaFileUrl').value = '';
     $('tiktokResult').textContent = '';
     $('tiktokEmbed').replaceChildren();
     $('tiktokOpen').disabled = true;
@@ -323,15 +329,16 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
     $('tiktokDownload').disabled = true;
   });
   safeAdd('tiktokDownload', 'click', async () => {
-    const url = parseWebUrl($('tiktokUrl').value);
-    activeTikTokUrl = url && isTikTokUrl(url) ? url.href : null;
     const endpoint = parseWebUrl($('tiktokBackendUrl').value);
-    if (!activeTikTokUrl) {
-      $('tiktokDownloadResult').textContent = 'Tempel dan periksa tautan TikTok yang valid terlebih dahulu.';
+    const mediaUrl = parseWebUrl($('tiktokMediaFileUrl').value);
+    const mediaHost = mediaUrl ? mediaUrl.hostname.toLowerCase().replace(/^www\\./, '') : '';
+    const isTikTokHost = mediaHost === 'tiktok.com' || mediaHost.endsWith('.tiktok.com') || mediaHost === 'tiktokcdn.com' || mediaHost.endsWith('.tiktokcdn.com');
+    if (!mediaUrl || mediaUrl.protocol !== 'https:' || isTikTokHost) {
+      $('tiktokDownloadResult').textContent = 'Masukkan URL HTTPS ke file video langsung dari sumber yang mengizinkan unduhan. Link halaman TikTok bukan URL file video langsung.';
       return;
     }
-    if (!endpoint || endpoint.protocol !== 'https:') {
-      $('tiktokDownloadResult').textContent = 'Backend belum diatur. Deploy backend HTTPS milikmu terlebih dahulu; GitHub Pages tidak menjalankan server.';
+    if (!endpoint || endpoint.protocol !== 'https:' || !endpoint.pathname.endsWith('/api/download-direct')) {
+      $('tiktokDownloadResult').textContent = 'Backend belum diatur. Deploy Web Service di Render, lalu masukkan endpoint HTTPS yang berakhir dengan /api/download-direct.';
       return;
     }
     const button = $('tiktokDownload');
@@ -343,7 +350,7 @@ footer { display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;marg
         method: 'POST',
         mode: 'cors',
         headers: {'Content-Type': 'application/json', 'Accept': 'video/*, application/octet-stream, application/json'},
-        body: JSON.stringify({url: activeTikTokUrl})
+        body: JSON.stringify({url: mediaUrl.href})
       });
       if (!response.ok) throw new Error('Backend merespons HTTP ' + response.status);
       let blob;
